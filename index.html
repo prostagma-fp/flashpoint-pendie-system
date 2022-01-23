@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js" integrity="sha512-csNcFYJniKjJxRWRV1R7fvnXrycHP6qDR21mgz1ZP55xY5d+aHLfo9/FcGDQLfn2IfngbAHd8LdfsagcCqgTcQ==" crossorigin="anonymous"></script>
+    <script src="https://jcward.com/UUID.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
 </head>
@@ -14,11 +15,12 @@
 <style>
     td { padding: 0 1em; }
     .thumb { object-fit: contain; width: 250px; max-height: 250px }
+    .app, .new { margin-left:40px; }
 </style>
 <div class="container" id="main">
     <h1>Flashpoint's Average Pendie System</h1>
     <div>If you were looking for regular meta edits, follow the <a href="https://bluemaxima.org/flashpoint/datahub/Metadata_Edits">usual method</a> instead of here</div>
-    <div id="same-fields" style="display:none">It seems you have not changed any fields from that app.</div>
+    <div id="same-fields" style="display:none">It seems there are missing fields from that app.</div>
     <form id="search">
         <div class="form-row">
             <div class="col">
@@ -124,7 +126,7 @@
         });
     });
 
-    function createSql(app_id) {
+    function createEdit(app_id) {
         $("#same-fields").hide();
         var app_name = document.getElementById("app-name-" + app_id);
         var app_path = document.getElementById("app-path-" + app_id);
@@ -135,13 +137,37 @@
         if(app_lc && app_lc["value"] != app_lc.getAttribute("value")) changes.push(`applicationPath = '${app_lc['value']}'`);
 
         if (changes.length) {
-            sql = `UPDATE additional_app SET ${changes.join(", ")} WHERE id = '${app_id}'`;
+            sql = `UPDATE additional_app SET ${changes.join(", ")} WHERE id = '${app_id}';`;
             saveAs(new File([sql], "edit.sql", {type: "text/plain;charset=utf-8"}));
         }
         else{
             $("#same-fields").show();
         }
-}
+    }
+
+    function createApp(app_id) {
+        $("#same-fields").hide();
+        var uuid = '';
+        var app_option = document.getElementById("new-type-" + app_id)["value"];
+        var app_replac = document.getElementById("new-replc-" + app_id).checked;
+        var app_altnm  = document.getElementById("new-altnm-" + app_id)["value"];
+        var app_name   = (app_option == ':message:') ? 'Message' : (app_option == ':extras:') ? 'Extras' : document.getElementById("new-name-" + app_id)["value"];
+        var app_path   = (app_option == ':message:' || app_option == ':extras:') ? app_option : document.getElementById("new-path-" + app_id)["value"];
+        var app_lc     = document.getElementById("new-lc-" + app_id)["value"];
+        var valid = app_lc ? (app_option == 'alt' ? ((!app_name || !app_path) ? false : (!app_replac || (!!app_altnm ? app_altnm : false))) : true) : false;
+        
+        uuid = UUID.generate();
+
+        if (valid) {
+            sql = (app_option == 'alt' && app_replac)
+             ? `UPDATE game SET applicationPath = '${app_path}', launchCommand = '${app_lc}' WHERE id = '${app_id}';\n`
+             : `INSERT INTO additional_app VALUES '${uuid}', '${app_path}', '${+(app_path == ':message:' || app_path == ':extras:')}', '${app_lc}', '${app_name}', '${+(app_path == ':message:' || app_path == ':extras:')}', '${app_id}';`;
+            saveAs(new File([sql], "newapp.sql", {type: "text/plain;charset=utf-8"}));
+        }
+        else{
+            $("#same-fields").show();
+        }
+    }
 </script>
 </body>
 </html>

@@ -6,7 +6,7 @@ if (strlen($q) < 3) {
     die();
 }
 
-$db = new SQLite3('flashpoint.sqlite');
+$db = new SQLite3('flashpoint.sqlite', SQLITE3_OPEN_READONLY);
 switch ($by) {
     case 'host':
         $stmt = $db->prepare('SELECT * FROM game WHERE launchCommand LIKE :launch');
