@@ -1,3 +1,6 @@
+# "Deprecated"
+Merged with my browser repo: https://github.com/prostagma-fp/FlashpointBrowser
+
 # Flashpoint's Average Pendie System
 Code adapted from [Flashpoint Browser](https://github.com/FlashpointProject/FlashpointBrowser)
 
